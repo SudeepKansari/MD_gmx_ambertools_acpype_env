@@ -1,0 +1,48 @@
+#Load Protein and Ligand force fields
+source leaprc.protein.ff14SB
+source leaprc.gaff2
+
+#Load water model
+source leaprc.water.tip3p
+
+# Load parameters for the divalent ions you have (Mg2+, Ca2+, Mn2+) and also Na+ and Cl-
+# The frcmod.ions234lm_1264_tip3p file contains parameters for divalent ions (like Mg2+, Ca2+, Mn2+)
+# frcmod.ionsjc_tip3p contains parameters for monovalent ions (like Na+, Cl-)
+# It's generally safe to load both, as LEaP will use the most recently loaded parameters if there are conflicts.
+loadamberparams frcmod.ions234lm_1264_tip3p # For Mg2+, Ca2+, Mn2+
+loadamberparams frcmod.ionsjc_tip3p       # For Na+, Cl-
+
+#Load protein
+protein = loadpdb protein.amber.pdb
+
+#Load ligand
+lig = loadmol2 lig.mol2
+loadamberparams lig.frcmod
+
+#Check protein and ligand
+check protein
+check lig
+
+#Make Protein-Ligand complex
+complex = combine {protein lig}
+
+#Check complex
+check complex
+
+#Create waterbox and solvate
+solvateBox complex TIP3PBOX 10.0   #cubic
+
+#Neutralize using Na and Cl
+addions complex Na+ 0 
+addions complex Cl- 0
+
+#Check complex again
+check complex
+
+#Save topology and coordinate files
+savepdb complex prot_lig.pdb
+saveamberparm complex prot_lig.prmtop prot_lig.inpcrd
+
+quit
+
+
