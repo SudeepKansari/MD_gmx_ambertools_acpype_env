@@ -1,0 +1,50 @@
+############plumed2############
+sudo apt update
+sudo apt install build-essential cmake git gfortran
+
+cd /usr/local/src
+sudo git clone https://github.com/plumed/plumed2.git
+cd plumed2
+
+sudo ./configure --disable-mpi
+sudo make -j$(nproc)
+sudo make install
+plumed info
+
+###in bashrc###
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+##########gromacs25.0##########
+wget ftp://ftp.gromacs.org/gromacs/gromacs-2025.0.tar.gz
+sudo mv ~/gromacs-2024.3 /usr/local/src
+sudo chown -R $USER:$USER /usr/local/src/gromacs-2025.0
+cd /usr/local/src/gromacs-2025.0
+
+##########patch_plumed#########
+plumed patch -p
+4
+
+##########build_gmx############
+mkdir build && cd build
+
+cmake .. \
+  -DCMAKE_INSTALL_PREFIX=/usr/local/gromacs \
+  -DGMX_BUILD_OWN_FFTW=ON \
+  -DGMX_MPI=OFF \
+  -DGMX_THREAD_MPI=OFF \
+  -DGMX_GPU=CUDA 
+
+make -j$(nproc)
+
+sudo make install
+
+##in bashrc##
+source /usr/local/gromacs/bin/GMXRC
+
+##restart_terminal##
+
+gmx --version
+
+##restore ownership(root)##
+sudo chown -R root:root /usr/local/src/gromacs-2025.0
+
